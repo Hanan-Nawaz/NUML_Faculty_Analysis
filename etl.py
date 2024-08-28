@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import re
 
 def extract():
     try:
@@ -49,5 +50,36 @@ def extract():
     except requests.exceptions.ConnectionError:
         print("Error! Extraction Failed")
 
+def transform():
+    #getting data from CSV
+    df_faculty = pd.read_csv("DataSets/faculty.csv", usecols=["Name", "Details", "Dept", "Designation", "Link"])
+    
+    #start index from 0
+    df_faculty.index = range(1, len(df_faculty) + 1) 
 
-extract()
+    #extracting email from details, Phone number of all are same with almost 6 different Extensions for All Teachers
+    df_faculty.insert(2, "Email", df_faculty["Details"].str.extract(r"([a-zA-Z_.+]+@[a-zA-Z-]+\.[a-zA-Z-.]+)"))
+    
+    #removing extra details from name
+    df_faculty["Name"] = df_faculty["Name"].str.split('(').str[0]
+
+    #adding column for Phd on the base of Dr. in name
+    df_faculty.insert(6, "Phd", df_faculty["Name"].str.contains("Dr."))
+
+    #removing different designations
+    df_faculty["Designation"] = df_faculty["Designation"].str.split('(').str[0].str.split('/').str[0].str.split('&').str[0]
+    df_faculty["Designation"] = df_faculty["Designation"].replace("Acting Director IT, ", "Assistant Professor")
+    df_faculty["Designation"] = df_faculty["Designation"].replace("Coordinator ", "Lecturer")
+    df_faculty["Designation"] = df_faculty["Designation"].replace("Head of Department", "Associate Professor")
+    df_faculty["Designation"] = df_faculty["Designation"].replace("Associate Lecturer", "Lecturer")
+    df_faculty["Designation"] = df_faculty["Designation"].str.strip()
+    df_faculty["Designation"] = df_faculty["Designation"].replace("Associate  Professor", "Associate Professor")
+    
+    #deleting details column 
+    df_faculty = df_faculty.drop(columns=["Details"])
+
+    # print(df_faculty["Designation"].unique()) checking unique designations (TESTING ONLY)
+
+    return df_faculty
+    
+transform()
