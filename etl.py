@@ -21,9 +21,6 @@ def extract():
         #finding cards with details
         div_cards = bsoup.find_all('div', {'class': 'courses-wrap'})
 
-        #dataframe to store data
-        df_faculty = pd.DataFrame(columns=["Name", "Details", "Dept", "Designation", "Link"])
-
         #list to store data
         faculty_data = []
 
@@ -37,21 +34,21 @@ def extract():
             f_link = main_div.find('h3').find('a')['href']
             faculty_data.append({"Name": f_name, "Details": f_details, "Dept": f_dept, "Designation": f_designation, "Link": f_link})
 
-        #adding data to Dataframe
-        for data in faculty_data:
-            df_faculty = df_faculty._append(data, ignore_index=True)
-
-        #loading data into csv for Transformation phase
-        df_faculty.to_csv('DataSets/faculty.csv')
-        
         print("Extraction Completed Successfully!")
+
+        return faculty_data
     
     except requests.exceptions.ConnectionError:
         print("Error! Extraction Failed")
 
-def transform():
-    #getting data from CSV
-    df_faculty = pd.read_csv("DataSets/faculty.csv", usecols=["Name", "Details", "Dept", "Designation", "Link"])
+def transform(faculty_data):
+
+    #dataframe to store data
+    df_faculty = pd.DataFrame(columns=["Name", "Details", "Dept", "Designation", "Link"])
+
+    #adding data to data frame
+    for data in faculty_data:
+            df_faculty = df_faculty._append(data, ignore_index=True)
     
     #start index from 0
     df_faculty.index = range(1, len(df_faculty) + 1) 
@@ -87,8 +84,8 @@ def load(df_transformed):
     print("Loading Completed Successfully!")
 
 def main():  
-    extract()
-    df_transformed = transform()
+    data = extract()
+    df_transformed = transform(data)
     load(df_transformed)
 
 if __name__ == "__main__":
