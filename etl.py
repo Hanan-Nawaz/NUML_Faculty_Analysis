@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import re
 
 def extract():
     try:
@@ -79,7 +78,18 @@ def transform():
     df_faculty = df_faculty.drop(columns=["Details"])
 
     # print(df_faculty["Designation"].unique()) checking unique designations (TESTING ONLY)
+    print("Transformation Completed Successfully!")
 
     return df_faculty
     
-transform()
+def load(df_transformed):
+    df_transformed.to_csv('DataSets/faculty.csv')
+    print("Loading Completed Successfully!")
+
+def main():  
+    extract()
+    df_transformed = transform()
+    load(df_transformed)
+
+if __name__ == "__main__":
+    main()
